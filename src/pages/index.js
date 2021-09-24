@@ -6,31 +6,42 @@ import MoreStories from "../components/more-stories";
 import { HelmetDatoCms } from "gatsby-source-datocms";
 import { graphql } from "gatsby";
 
-export default function Index({ data: { allPosts, site, blog } }) {
-  const heroPost = allPosts.nodes[0];
-  const morePosts = allPosts.nodes.slice(1);
-
+const Header = ({headerIntro}) => {
+  const headerStyle = `
+  text-3xl
+  text-gray-700
+  font-medium
+  border-black
+  border-b-2
+  py-5
+  `
+  return (
+  <div className={headerStyle}>{headerIntro}</div>
+  )
+}
+const HomePage = ({ data: { allPosts, site, blog }}) => {
+  const cardTitle = `
+  font-bold
+  text-4xl
+  `
   return (
     <Container>
       <HelmetDatoCms seo={blog.seo} favicon={site.favicon} />
-      <Intro />
-      {heroPost && (
-        <HeroPost
-          title={heroPost.title}
-          coverImage={heroPost.coverImage}
-          date={heroPost.date}
-          author={heroPost.author}
-          slug={heroPost.slug}
-          excerpt={heroPost.excerpt}
-        />
-      )}
-      {morePosts.length > 0 && <MoreStories posts={morePosts} />}
+      <Header headerIntro="The quick Git cookbook for developers in a pinch" />
+      {allPosts.nodes.map(node => (
+        <article key={node.id}>
+          <h2 className={cardTitle}>{node.title}</h2>
+          <p>{node.intro}</p>
+        </article>
+      ))}
     </Container>
-  );
+  )
 }
 
+export default HomePage
+
 export const query = graphql`
-  {
+  query {
     site: datoCmsSite {
       favicon: faviconMetaTags {
         ...GatsbyDatoCmsFaviconMetaTags
@@ -41,33 +52,12 @@ export const query = graphql`
         ...GatsbyDatoCmsSeoMetaTags
       }
     }
-    allPosts: allDatoCmsPost(sort: { fields: date, order: DESC }, limit: 20) {
+    allPosts: allDatoCmsRecipe {
       nodes {
         title
-        slug
-        excerpt
-        date
-        coverImage {
-          large: fluid(imgixParams: { fm: "jpg" }, sizes: "(max-width: 1500px) 100vw, 1500px") {
-            ...GatsbyDatoCmsFluid
-          }
-          small: fluid(imgixParams: { fm: "jpg" }, sizes: "(max-width: 760px) 100vw, (max-width: 1500px) 50vw, 700px") {
-            ...GatsbyDatoCmsFluid
-          }
-        }
-        author {
-          name
-          picture {
-            fixed(
-              width: 48
-              height: 48
-              imgixParams: { fm: "jpg", fit: "crop", sat: -100 }
-            ) {
-              ...GatsbyDatoCmsFixed
-            }
-          }
-        }
+        id
+        intro
       }
     }
   }
-`;
+`
